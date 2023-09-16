@@ -1,6 +1,8 @@
-from site_parser import function_that_parses_site, extract_site_info
+from pprint import pprint
+
+from site_parser import get_info
 
 
-max_pages = function_that_parses_site()
-
-extract_site_info(max_pages)
+if __name__ == '__main__':
+    pprint(get_info())
+ 

@@ -1,8 +1,9 @@
 import requests
+
 from bs4 import BeautifulSoup
 from dotenv import dotenv_values
 
-ITEMS = 100
+
 URL = dotenv_values('.env')['URL']
 
 headers = {
@@ -17,7 +18,7 @@ headers = {
 
 def function_that_parses_site():
     hh_request = requests.get(
-        f'{URL}&items_on_page={ITEMS}',
+        URL,
         headers=headers,
     )
 
@@ -39,11 +40,48 @@ def function_that_parses_site():
 
     return pages[-1]
 
+def processing_function(html):
+    title = html.find('a').text
+    link = html.find('a')['href']
+    add_info = html.find(
+        'div', 
+        {'class': 'vacancy-serp-item__meta-info-company'}
+        ).find('a').text
+    add_info = add_info.strip()
+    location = html.find('div', {'data-qa': 'vacancy-serp__vacancy-address'}).text
+    location = location.split()[0].replace(',', '')
+    
+    return {
+        'title': title,
+        'add_info': add_info,
+        'location': location,
+        'link': link,
+    }
 
 def extract_site_info(last_page):
-    for page in range(last_page):
-        result = requests.get(
-            f'{URL}&page={page}',
-            headers=headers,
+    info = []
+
+    # for page in range(last_page):
+    result = requests.get(
+        URL,
+        headers=headers,
         )
-        print(result.status_code)
+
+    soup = BeautifulSoup(
+        result.text,
+        'html.parser'
+        )
+    
+    results = soup.find_all('div', {'class' : 'serp-item'})
+
+    for result in results:
+        page = processing_function(result)
+        info.append(page)
+
+    return info
+
+
+def get_info():
+    max_page = function_that_parses_site()
+    result = extract_site_info(max_page)
+    return result
